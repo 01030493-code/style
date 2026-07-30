@@ -1,0 +1,1176 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>スタイルページ活用事例ナレッジバンク | ホットペッパービューティー</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <!-- html2pdf.js for PDF Export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Noto Sans JP"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+                    },
+                    colors: {
+                        theme: {
+                            rose: '#cb606d',        /* Dusty Rose main theme */
+                            roseHover: '#b8505d',   /* Hover state */
+                            roseLight: '#fcecf0',  /* Soft light pink */
+                            roseBg: '#fdf3f5',     /* Card & box background */
+                            roseBorder: '#f3d3d8', /* Soft border pink */
+                            bg: '#f7f7f8',         /* Background light gray */
+                            textDark: '#3d3d3d',   /* Primary charcoal text */
+                            textMuted: '#737373'  /* Muted text */
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background-color: #f7f7f8;
+            color: #3d3d3d;
+            -webkit-font-smoothing: antialiased;
+        }
+        .card-hover {
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .card-hover:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px -6px rgba(203, 96, 109, 0.12);
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #printable-area, #printable-area * {
+                visibility: visible;
+            }
+            #printable-area {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+            }
+            .no-print {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col bg-theme-bg text-theme-textDark">
+
+    <!-- Header Banner -->
+    <header class="bg-white border-b border-theme-roseBorder sticky top-0 z-30 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                
+                <!-- Logo & Title Section -->
+                <div class="flex items-center space-x-3">
+                    <div class="bg-theme-roseLight p-2.5 rounded-2xl text-theme-rose border border-theme-roseBorder">
+                        <i class="fa-solid fa-wand-magic-sparkles text-xl"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="bg-theme-roseLight text-theme-rose text-[11px] font-bold px-2.5 py-0.5 rounded-full border border-theme-roseBorder">営業提案ナレッジ</span>
+                            <span class="text-xs text-theme-textMuted tracking-wider font-medium">HOT PEPPER BEAUTY</span>
+                        </div>
+                        <h1 class="text-lg sm:text-xl font-bold tracking-tight text-theme-textDark mt-0.5">スタイルページ活用事例ナレッジバンク</h1>
+                    </div>
+                </div>
+
+                <!-- Right Side Actions & Metric Counter -->
+                <div class="flex items-center justify-between sm:justify-end gap-3 pt-2 md:pt-0">
+                    <div class="bg-theme-roseBg px-4 py-2 rounded-2xl border border-theme-roseBorder text-center min-w-[110px]">
+                        <p class="text-theme-textMuted text-[11px] font-medium">収容事例数</p>
+                        <p class="text-xl font-black text-theme-rose mt-0.5"><span id="total-cases-count">0</span> <span class="text-xs font-bold text-theme-textMuted">件</span></p>
+                    </div>
+                    
+                    <button onclick="openRegisterModal()" class="bg-theme-rose hover:bg-theme-roseHover text-white font-bold px-4 py-2.5 rounded-2xl shadow-sm transition flex items-center gap-2 text-xs sm:text-sm">
+                        <i class="fa-solid fa-plus-circle text-base"></i>
+                        <span>新規事例を登録</span>
+                    </button>
+
+                    <button id="open-mybook-btn" onclick="openMyBookModal()" class="relative bg-white border border-theme-rose text-theme-rose hover:bg-theme-roseLight font-bold px-4 py-2.5 rounded-2xl shadow-sm transition flex items-center gap-2 text-xs sm:text-sm">
+                        <i class="fa-solid fa-folder-bookmark text-base"></i>
+                        <span>提案リスト</span>
+                        <span id="mybook-badge" class="bg-theme-rose text-white text-xs font-bold px-2 py-0.5 rounded-full">0</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+
+            <!-- Sidebar Filters -->
+            <aside class="lg:col-span-1 space-y-6">
+                <div class="bg-white rounded-3xl p-5 shadow-sm border border-theme-roseBorder sticky top-20">
+                    <div class="flex items-center justify-between pb-3 border-b border-theme-roseBorder mb-4">
+                        <h2 class="font-bold text-theme-textDark flex items-center gap-2 text-sm">
+                            <i class="fa-solid fa-sliders text-theme-rose"></i>
+                            条件絞り込み
+                        </h2>
+                        <button onclick="resetFilters()" class="text-xs text-theme-textMuted hover:text-theme-rose transition flex items-center gap-1 font-medium">
+                            <i class="fa-solid fa-rotate-left text-[10px]"></i> リセット
+                        </button>
+                    </div>
+
+                    <form id="filter-form" onsubmit="event.preventDefault();" class="space-y-4">
+                        <!-- 1. ターゲット性別 -->
+                        <div>
+                            <label class="block text-xs font-bold text-theme-textDark mb-1.5 flex items-center gap-1.5">
+                                <span class="w-2 h-2 rounded-full bg-theme-rose inline-block"></span>
+                                ① ターゲット性別
+                            </label>
+                            <select id="filter-gender" onchange="applyFilters()" class="w-full bg-theme-roseBg border border-theme-roseBorder rounded-2xl px-3 py-2.5 text-xs text-theme-textDark font-medium focus:ring-2 focus:ring-theme-rose/30 focus:border-theme-rose focus:outline-none transition">
+                                <option value="">すべての性別</option>
+                                <option value="レディース">レディース</option>
+                                <option value="メンズ">メンズ</option>
+                                <option value="ジェンダーレス">ジェンダーレス</option>
+                            </select>
+                        </div>
+
+                        <!-- 2. 年齢層 -->
+                        <div>
+                            <label class="block text-xs font-bold text-theme-textDark mb-1.5 flex items-center gap-1.5">
+                                <span class="w-2 h-2 rounded-full bg-theme-rose inline-block"></span>
+                                ② 年齢層
+                            </label>
+                            <select id="filter-age" onchange="applyFilters()" class="w-full bg-theme-roseBg border border-theme-roseBorder rounded-2xl px-3 py-2.5 text-xs text-theme-textDark font-medium focus:ring-2 focus:ring-theme-rose/30 focus:border-theme-rose focus:outline-none transition">
+                                <option value="">すべての年齢層</option>
+                                <option value="24歳以下">24歳以下</option>
+                                <option value="25-34歳">25-34歳</option>
+                                <option value="35歳以上">35歳以上</option>
+                            </select>
+                        </div>
+
+                        <!-- 3. サロンのウリ (22項目) -->
+                        <div>
+                            <label class="block text-xs font-bold text-theme-textDark mb-1.5 flex items-center gap-1.5">
+                                <span class="w-2 h-2 rounded-full bg-theme-rose inline-block"></span>
+                                ③ サロンのウリ（強み）
+                            </label>
+                            <select id="filter-strength" onchange="applyFilters()" class="w-full bg-theme-roseBg border border-theme-roseBorder rounded-2xl px-3 py-2.5 text-xs text-theme-textDark font-medium focus:ring-2 focus:ring-theme-rose/30 focus:border-theme-rose focus:outline-none transition">
+                                <option value="">すべてのウリ</option>
+                                <option value="再現性・もちが良いカットがウリ">再現性・もちが良いカットがウリ</option>
+                                <option value="顔周りの似合わせカットがウリ">顔周りの似合わせカットがウリ</option>
+                                <option value="ショートヘアのカットがウリ">ショートヘアのカットがウリ</option>
+                                <option value="ミディアム・ロングヘアのカットがウリ">ミディアム・ロングヘアのカットがウリ</option>
+                                <option value="デザインカラーがウリ">デザインカラーがウリ</option>
+                                <option value="グレイカラー・白髪カバーがウリ">グレイカラー・白髪カバーがウリ</option>
+                                <option value="オーガニックカラー・ヘナがウリ">オーガニックカラー・ヘナがウリ</option>
+                                <option value="パーマがウリ">パーマがウリ</option>
+                                <option value="縮毛矯正・ストレートがウリ">縮毛矯正・ストレートがウリ</option>
+                                <option value="エクステがウリ">エクステがウリ</option>
+                                <option value="ヘッドスパがウリ">ヘッドスパがウリ</option>
+                                <option value="うるツヤになれる厳選トリートメントがウリ">うるツヤになれる厳選トリートメントがウリ</option>
+                                <option value="ぺたんこ・ひろがり・パサつき髪のお悩み解決がウリ">ぺたんこ・ひろがり・パサつき髪のお悩み解決がウリ</option>
+                                <option value="くせ毛・うねりのお悩み解決がウリ">くせ毛・うねりのお悩み解決がウリ</option>
+                                <option value="ダメージヘアのお悩み解決がウリ">ダメージヘアのお悩み解決がウリ</option>
+                                <option value="キッズカットがウリ">キッズカットがウリ</option>
+                                <option value="パーティーヘアセットがウリ">パーティーヘアセットがウリ</option>
+                                <option value="カジュアルアレンジがウリ">カジュアルアレンジがウリ</option>
+                                <option value="着付けがウリ">着付けがウリ</option>
+                                <option value="ビジネスマン向けのヘアがウリ">ビジネスマン向けのヘアがウリ</option>
+                                <option value="メンズカジュアルがウリ">メンズカジュアルがウリ</option>
+                                <option value="ひげ・眉などの施術がウリ">ひげ・眉などの施術がウリ</option>
+                            </select>
+                        </div>
+
+                        <!-- 4. 動画活用 -->
+                        <div>
+                            <label class="block text-xs font-bold text-theme-textDark mb-1.5 flex items-center gap-1.5">
+                                <span class="w-2 h-2 rounded-full bg-theme-rose inline-block"></span>
+                                ④ 動画活用
+                            </label>
+                            <select id="filter-video" onchange="applyFilters()" class="w-full bg-theme-roseBg border border-theme-roseBorder rounded-2xl px-3 py-2.5 text-xs text-theme-textDark font-medium focus:ring-2 focus:ring-theme-rose/30 focus:border-theme-rose focus:outline-none transition">
+                                <option value="">すべての事例（動画活用の有無を問わない）</option>
+                                <option value="あり">動画活用あり</option>
+                                <option value="なし">動画活用なし</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+            </aside>
+
+            <!-- Main Content: Case Studies Grid -->
+            <section class="lg:col-span-3 space-y-4">
+                
+                <!-- Results Counter Bar -->
+                <div class="bg-white rounded-2xl px-5 py-3 shadow-sm border border-theme-roseBorder flex items-center justify-between">
+                    <div class="flex items-center gap-2 text-xs sm:text-sm text-theme-textMuted">
+                        <span>検索条件に一致した事例：</span>
+                        <span id="result-count" class="text-lg font-black text-theme-rose">0</span>
+                        <span class="font-bold text-theme-textDark">件</span>
+                    </div>
+                    <button id="seed-btn" onclick="seedInitialData()" class="text-xs text-theme-rose hover:underline font-bold flex items-center gap-1">
+                        <i class="fa-solid fa-cloud-arrow-up"></i> サンプル事例を一括登録
+                    </button>
+                </div>
+
+                <!-- Case Cards Grid Container -->
+                <div id="cases-grid" class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <!-- Dynamic cards rendered via JavaScript -->
+                </div>
+
+                <!-- Empty State Message -->
+                <div id="empty-state" class="hidden bg-white rounded-3xl p-12 text-center border border-dashed border-theme-roseBorder">
+                    <div class="w-14 h-14 bg-theme-roseLight text-theme-rose rounded-full flex items-center justify-center mx-auto mb-3 text-xl">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </div>
+                    <h3 class="text-sm font-bold text-theme-textDark">該当するサロン事例が見つかりませんでした</h3>
+                    <p class="text-xs text-theme-textMuted mt-1">検索条件を変更するか、条件をリセットしてお試しください。</p>
+                    <button onclick="resetFilters()" class="mt-4 bg-theme-rose text-white text-xs font-bold px-4 py-2 rounded-xl shadow-sm hover:bg-theme-roseHover transition">
+                        条件をリセット
+                    </button>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Detail Modal -->
+    <div id="detail-modal" class="fixed inset-0 z-50 hidden bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white rounded-3xl max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-xl relative border border-theme-roseBorder my-8">
+            <button onclick="closeDetailModal()" class="absolute top-4 right-4 z-10 bg-theme-roseLight text-theme-rose hover:bg-theme-roseBorder w-8 h-8 rounded-full flex items-center justify-center transition">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div id="modal-content" class="p-6 sm:p-8">
+                <!-- Dynamic Content -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Case Registration Modal -->
+    <div id="register-modal" class="fixed inset-0 z-50 hidden bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-xl relative border border-theme-roseBorder my-8">
+            <div class="p-5 border-b border-theme-roseBorder flex items-center justify-between bg-theme-roseBg rounded-t-3xl">
+                <div>
+                    <h2 class="text-base font-bold text-theme-textDark flex items-center gap-2">
+                        <i class="fa-solid fa-plus-circle text-theme-rose"></i>
+                        新規サロン事例登録
+                    </h2>
+                    <p class="text-xs text-theme-textMuted mt-0.5">登録した事例はナレッジバンクに即座に保存・チーム共有されます</p>
+                </div>
+                <button onclick="closeRegisterModal()" class="bg-white text-theme-textMuted hover:text-theme-textDark w-8 h-8 rounded-full flex items-center justify-center border border-theme-roseBorder transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <form id="register-form" onsubmit="handleCaseRegistration(event)" class="p-6 space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-theme-textDark mb-1">サロン名 <span class="text-rose-500">*</span></label>
+                        <input type="text" id="reg-salonName" required placeholder="例: HAIR SALON LUA 渋谷" class="w-full bg-theme-roseBg border border-theme-roseBorder rounded-2xl px-3 py-2 text-xs focus:ring-2 focus:ring-theme-rose/30 focus:border-theme-rose focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-theme-textDark mb-1">エリア <span class="text-rose-500">*</span></label>
+                        <input type="text" id="reg-area" required placeholder="例: 東京都渋谷区" class="w-full bg-theme-roseBg border border-theme-roseBorder rounded-2xl px-3 py-2 text-xs focus:ring-2 focus:ring-theme-rose/30 focus:border-theme-rose focus:outline-none">
+                    </div>
+                </div>
+
+                <!-- ターゲット性別（複数選択可） -->
+                <div>
+                    <label class="block text-xs font-bold text-theme-textDark mb-1.5">ターゲット性別（複数選択可） <span class="text-rose-500">*</span></label>
+                    <div class="bg-theme-roseBg border border-theme-roseBorder rounded-2xl p-3 flex flex-wrap gap-3">
+                        <label class="inline-flex items-center gap-1.5 text-xs text-theme-textDark font-medium cursor-pointer">
+                            <input type="checkbox" name="reg-gender" value="レディース" class="accent-theme-rose rounded"> レディース
+                        </label>
+                        <label class="inline-flex items-center gap-1.5 text-xs text-theme-textDark font-medium cursor-pointer">
+                            <input type="checkbox" name="reg-gender" value="メンズ" class="accent-theme-rose rounded"> メンズ
+                        </label>
+                        <label class="inline-flex items-center gap-1.5 text-xs text-theme-textDark font-medium cursor-pointer">
+                            <input type="checkbox" name="reg-gender" value="ジェンダーレス" class="accent-theme-rose rounded"> ジェンダーレス
+                        </label>
+                    </div>
+                </div>
+
+                <!-- 年齢層（複数選択可） -->
+                <div>
+                    <label class="block text-xs font-bold text-theme-textDark mb-1.5">年齢層（複数選択可） <span class="text-rose-500">*</span></label>
+                    <div class="bg-theme-roseBg border border-theme-roseBorder rounded-2xl p-3 flex flex-wrap gap-3">
+                        <label class="inline-flex items-center gap-1.5 text-xs text-theme-textDark font-medium cursor-pointer">
+                            <input type="checkbox" name="reg-ageGroup" value="24歳以下" class="accent-theme-rose rounded"> 24歳以下
+                        </label>
+                        <label class="inline-flex items-center gap-1.5 text-xs text-theme-textDark font-medium cursor-pointer">
+                            <input type="checkbox" name="reg-ageGroup" value="25-34歳" class="accent-theme-rose rounded"> 25-34歳
+                        </label>
+                        <label class="inline-flex items-center gap-1.5 text-xs text-theme-textDark font-medium cursor-pointer">
+                            <input type="checkbox" name="reg-ageGroup" value="35歳以上" class="accent-theme-rose rounded"> 35歳以上
+                        </label>
+                    </div>
+                </div>
+
+                <!-- サロンのウリ（複数選択可） -->
+                <div>
+                    <label class="block text-xs font-bold text-theme-textDark mb-1.5">サロンのウリ（複数選択可） <span class="text-rose-500">*</span></label>
+                    <div class="bg-theme-roseBg border border-theme-roseBorder rounded-2xl p-3 max-h-48 overflow-y-auto grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                        <label class="inline-flex items-center gap-1.5 text-theme-textDark font-medium cursor-pointer">
+                            <input type="checkbox" name="reg-strength" value="再現性・もちが良いカットがウリ" class="accent-theme-rose rounded"> 再現性・もちが良いカットがウリ
+                        </label>
+                        <label class="inline-flex items-center gap-1.5 text-theme-textDark font-medium cursor-pointer">
+                            <input type="checkbox" name="reg-strength" value="顔周りの似合わせカットがウリ" class="accent-theme-rose rounded"> 顔周りの似合わせカットがウリ
+                        </label>
+                        <label class="inline-flex items-center gap-1.5 text-theme-textDark font-medium cursor-pointer">
+                            <input type="checkbox" name="reg-strength" value="ショートヘアのカットがウリ" class="accent-theme-rose rounded"> ショートヘアのカットがウリ
+                        </label>
+                        <label class="inline-flex items-center gap-1.5 text-theme-textDark font-medium cursor-pointer">
+                            <input type="checkbox" name="reg-strength" value="ミディアム・ロングヘアのカットがウリ" class="accent-theme-rose rounded"> ミディアム・ロングヘアのカットがウリ
+                        </label>
+                        <label class="inline-flex items-center gap-1.5 text-theme-textDark font-medium cursor-pointer">
+                            <input type="checkbox" name="reg-strength" value="デザインカラーがウリ" class="accent-theme-rose rounded"> デザインカラーがウリ
+                        </label>
+                        <label class="inline-flex items-center gap-1.5 text-theme-textDark font-medium cursor-pointer">
+                            <input type="checkbox" name="reg-strength" value="グレイカラー・白髪カバーがウリ" class="accent-theme-rose rounded"> グレイカラー・白髪カバーがウリ
+                        </label>
+                        <label class="inline-flex items-center gap-1.5 text-theme-textDark font-medium cursor-pointer">
+                            <input type="checkbox" name="reg-strength" value="オーガニックカラー・ヘナがウリ" class="accent-theme-rose rounded"> オーガニックカラー・ヘナがウリ
+                        </label>
+                        <label class="inline-flex items-center gap-1.5 text-theme-textDark font-medium cursor-pointer">
+                            <input type="checkbox" name="reg-strength" value="パーマがウリ" class="accent-theme-rose rounded"> パーマがウリ
+                        </label>
+                        <label class="inline-flex items-center gap-1.5 text-theme-textDark font-medium cursor-pointer">
+                            <input type="checkbox" name="reg-strength" value="縮毛矯正・ストレートがウリ" class="accent-theme-rose rounded"> 縮毛矯正・ストレートがウリ
+                        </label>
+                        <label class="inline-flex items-center gap-1.5 text-theme-textDark font-medium cursor-pointer">
+                            <input type="checkbox" name="reg-strength" value="エクステがウリ" class="accent-theme-rose rounded"> エクステがウリ
+                        </label>
+                        <label class="inline-flex items-center gap-1.5 text-theme-textDark font-medium cursor-pointer">
+                            <input type="checkbox" name="reg-strength" value="ヘッドスパがウリ" class="accent-theme-rose rounded"> ヘッドスパがウリ
+                        </label>
+                        <label class="inline-flex items-center gap-1.5 text-theme-textDark font-medium cursor-pointer">
+                            <input type="checkbox" name="reg-strength" value="うるツヤになれる厳選トリートメントがウリ" class="accent-theme-rose rounded"> うるツヤになれる厳選トリートメントがウリ
+                        </label>
+                        <label class="inline-flex items-center gap-1.5 text-theme-textDark font-medium cursor-pointer">
+                            <input type="checkbox" name="reg-strength" value="ぺたんこ・ひろがり・パサつき髪のお悩み解決がウリ" class="accent-theme-rose rounded"> ぺたんこ・ひろがり・パサつき髪のお悩み解決がウリ
+                        </label>
+                        <label class="inline-flex items-center gap-1.5 text-theme-textDark font-medium cursor-pointer">
+                            <input type="checkbox" name="reg-strength" value="くせ毛・うねりのお悩み解決がウリ" class="accent-theme-rose rounded"> くせ毛・うねりのお悩み解決がウリ
+                        </label>
+                        <label class="inline-flex items-center gap-1.5 text-theme-textDark font-medium cursor-pointer">
+                            <input type="checkbox" name="reg-strength" value="ダメージヘアのお悩み解決がウリ" class="accent-theme-rose rounded"> ダメージヘアのお悩み解決がウリ
+                        </label>
+                        <label class="inline-flex items-center gap-1.5 text-theme-textDark font-medium cursor-pointer">
+                            <input type="checkbox" name="reg-strength" value="キッズカットがウリ" class="accent-theme-rose rounded"> キッズカットがウリ
+                        </label>
+                        <label class="inline-flex items-center gap-1.5 text-theme-textDark font-medium cursor-pointer">
+                            <input type="checkbox" name="reg-strength" value="パーティーヘアセットがウリ" class="accent-theme-rose rounded"> パーティーヘアセットがウリ
+                        </label>
+                        <label class="inline-flex items-center gap-1.5 text-theme-textDark font-medium cursor-pointer">
+                            <input type="checkbox" name="reg-strength" value="カジュアルアレンジがウリ" class="accent-theme-rose rounded"> カジュアルアレンジがウリ
+                        </label>
+                        <label class="inline-flex items-center gap-1.5 text-theme-textDark font-medium cursor-pointer">
+                            <input type="checkbox" name="reg-strength" value="着付けがウリ" class="accent-theme-rose rounded"> 着付けがウリ
+                        </label>
+                        <label class="inline-flex items-center gap-1.5 text-theme-textDark font-medium cursor-pointer">
+                            <input type="checkbox" name="reg-strength" value="ビジネスマン向けのヘアがウリ" class="accent-theme-rose rounded"> ビジネスマン向けのヘアがウリ
+                        </label>
+                        <label class="inline-flex items-center gap-1.5 text-theme-textDark font-medium cursor-pointer">
+                            <input type="checkbox" name="reg-strength" value="メンズカジュアルがウリ" class="accent-theme-rose rounded"> メンズカジュアルがウリ
+                        </label>
+                        <label class="inline-flex items-center gap-1.5 text-theme-textDark font-medium cursor-pointer">
+                            <input type="checkbox" name="reg-strength" value="ひげ・眉などの施術がウリ" class="accent-theme-rose rounded"> ひげ・眉などの施術がウリ
+                        </label>
+                    </div>
+                </div>
+
+                <!-- 動画活用 -->
+                <div>
+                    <label class="block text-xs font-bold text-theme-textDark mb-1.5">動画活用</label>
+                    <div class="bg-theme-roseBg border border-theme-roseBorder rounded-2xl p-3 flex items-center gap-3">
+                        <label class="inline-flex items-center gap-1.5 text-xs text-theme-textDark font-medium cursor-pointer">
+                            <input type="checkbox" id="reg-hasVideo" value="あり" class="accent-theme-rose rounded"> 動画を活用したスタイル事例
+                        </label>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-theme-textDark mb-1">事例タイトル <span class="text-rose-500">*</span></label>
+                    <input type="text" id="reg-title" required placeholder="例: 小顔に見せるフェイスレイヤー×抜け感スタイリング" class="w-full bg-theme-roseBg border border-theme-roseBorder rounded-2xl px-3 py-2 text-xs focus:ring-2 focus:ring-theme-rose/30 focus:border-theme-rose focus:outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-theme-textDark mb-1">ホットペッパービューティースタイルページURL</label>
+                    <input type="url" id="reg-styleUrl" placeholder="例: https://beauty.hotpepper.jp/slnH000xxxxxx/style/Lxxxxxxxx.html" class="w-full bg-theme-roseBg border border-theme-roseBorder rounded-2xl px-3 py-2 text-xs focus:ring-2 focus:ring-theme-rose/30 focus:border-theme-rose focus:outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-theme-textDark mb-1">写真撮影のアドバイス（構図・光） <span class="text-rose-500">*</span></label>
+                    <textarea id="reg-keyPointPhoto" required rows="2" placeholder="撮影の角度や光の当て方、背景の工夫など" class="w-full bg-theme-roseBg border border-theme-roseBorder rounded-2xl px-3 py-2 text-xs focus:ring-2 focus:ring-theme-rose/30 focus:border-theme-rose focus:outline-none"></textarea>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-theme-textDark mb-1">キャプション・言語化の工夫 <span class="text-rose-500">*</span></label>
+                    <textarea id="reg-keyPointCaption" required rows="2" placeholder="スタイル説明文でアピールしている訴求キーワードや書き方" class="w-full bg-theme-roseBg border border-theme-roseBorder rounded-2xl px-3 py-2 text-xs focus:ring-2 focus:ring-theme-rose/30 focus:border-theme-rose focus:outline-none"></textarea>
+                </div>
+
+                <div class="pt-3 border-t border-theme-roseBorder flex justify-end gap-3">
+                    <button type="button" onclick="closeRegisterModal()" class="bg-slate-100 text-theme-textMuted text-xs font-bold px-4 py-2.5 rounded-2xl hover:bg-slate-200 transition">
+                        キャンセル
+                    </button>
+                    <button type="submit" id="save-case-btn" class="bg-theme-rose hover:bg-theme-roseHover text-white text-xs font-bold px-6 py-2.5 rounded-2xl shadow-sm transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-check"></i> 事例を登録する
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MyBook / Proposal List Modal -->
+    <div id="mybook-modal" class="fixed inset-0 z-50 hidden bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white rounded-3xl max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-xl relative border border-theme-roseBorder my-8">
+            <div class="p-5 border-b border-theme-roseBorder flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-theme-roseBg rounded-t-3xl">
+                <div>
+                    <h2 class="text-base font-bold text-theme-textDark flex items-center gap-2">
+                        <i class="fa-solid fa-folder-bookmark text-theme-rose"></i>
+                        商談提案用ピックアップリスト
+                    </h2>
+                    <p class="text-xs text-theme-textMuted mt-0.5">保存した事例を一つのPDFとして出力・クライアント共有できます</p>
+                </div>
+                <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+                    <button onclick="downloadProposalPDF()" class="no-print bg-theme-rose hover:bg-theme-roseHover text-white text-xs font-bold px-3.5 py-2 rounded-xl shadow-sm transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-file-pdf"></i> PDFでダウンロード
+                    </button>
+                    <button onclick="openShareEmailModal()" class="no-print bg-white border border-theme-rose text-theme-rose hover:bg-theme-roseLight text-xs font-bold px-3.5 py-2 rounded-xl shadow-sm transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-paper-plane"></i> CL送付文面作成
+                    </button>
+                    <button onclick="closeMyBookModal()" class="bg-white text-theme-textMuted hover:text-theme-textDark w-8 h-8 rounded-full flex items-center justify-center border border-theme-roseBorder transition">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div id="printable-area" class="p-6 space-y-4">
+                <div class="hidden print:block border-b border-theme-roseBorder pb-4 mb-4">
+                    <div class="flex justify-between items-center">
+                        <h1 class="text-xl font-bold text-theme-textDark">スタイルページ活用ご提案シート</h1>
+                        <p class="text-xs text-theme-textMuted">HOT PEPPER BEAUTY</p>
+                    </div>
+                </div>
+                <div id="mybook-items-container" class="space-y-4">
+                    <!-- Dynamic bookmarked items -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Client Share Email Modal -->
+    <div id="share-email-modal" class="fixed inset-0 z-50 hidden bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-xl border border-theme-roseBorder space-y-4">
+            <div class="flex items-center justify-between pb-2 border-b border-theme-roseBorder">
+                <h3 class="text-sm font-bold text-theme-textDark flex items-center gap-2">
+                    <i class="fa-solid fa-envelope-open-text text-theme-rose"></i>
+                    クライアント（CL）送付用メール文面
+                </h3>
+                <button onclick="closeShareEmailModal()" class="text-theme-textMuted hover:text-theme-textDark">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <p class="text-xs text-theme-textMuted">以下の文面をコピーして、メールやチャットツールでそのままクライアントにお送りいただけます。</p>
+            <textarea id="share-email-textarea" readonly rows="10" class="w-full bg-theme-roseBg border border-theme-roseBorder rounded-2xl p-3 text-xs text-theme-textDark font-mono focus:outline-none leading-relaxed"></textarea>
+            <div class="flex justify-end gap-2 pt-2">
+                <button onclick="closeShareEmailModal()" class="bg-slate-100 hover:bg-slate-200 text-theme-textMuted text-xs font-bold px-4 py-2 rounded-xl transition">
+                    閉じる
+                </button>
+                <button onclick="copyShareEmailText()" class="bg-theme-rose hover:bg-theme-roseHover text-white text-xs font-bold px-5 py-2 rounded-xl shadow-sm transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-copy"></i> 文面をコピー
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="delete-modal" class="fixed inset-0 z-50 hidden bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-sm w-full p-6 text-center shadow-xl border border-theme-roseBorder">
+            <div class="w-12 h-12 bg-theme-roseLight text-theme-rose rounded-full flex items-center justify-center mx-auto mb-3 text-lg">
+                <i class="fa-solid fa-trash-can"></i>
+            </div>
+            <h3 class="text-sm font-bold text-theme-textDark mb-1">事例を削除しますか？</h3>
+            <p class="text-xs text-theme-textMuted mb-5">この操作によりナレッジバンクから事例データが削除されます。</p>
+            <div class="flex gap-2">
+                <button onclick="closeDeleteModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-theme-textMuted text-xs font-bold py-2.5 rounded-2xl transition">
+                    キャンセル
+                </button>
+                <button id="confirm-delete-btn" onclick="executeDeleteCase()" class="flex-1 bg-rose-500 hover:bg-rose-600 text-white text-xs font-bold py-2.5 rounded-2xl shadow-sm transition">
+                    削除する
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase & Dynamic Application Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, onSnapshot, addDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // =========================================================================
+        // 【営業全員でのリアルタイム共有設定】
+        // 下記の userFirebaseConfig に、Firebaseコンソールで取得したキーを貼り付けると、
+        // GitHub PagesのURLを共有した営業全員の画面で自動的にリアルタイム同期されます。
+        // =========================================================================
+        const userFirebaseConfig = {
+            // 例:
+            // apiKey: "AIzaSy...",
+            // authDomain: "hpb-style-knowledge.firebaseapp.com",
+            // projectId: "hpb-style-knowledge",
+            // storageBucket: "hpb-style-knowledge.appspot.com",
+            // messagingSenderId: "123456789",
+            // appId: "1:123456789:web:abcdef..."
+        };
+
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'hpb-style-shared';
+        let firebaseConfig = null;
+        let db = null;
+        let auth = null;
+
+        // Determine active Firebase configuration
+        if (userFirebaseConfig && userFirebaseConfig.apiKey) {
+            firebaseConfig = userFirebaseConfig;
+        } else if (typeof __firebase_config !== 'undefined' && __firebase_config) {
+            try {
+                firebaseConfig = JSON.parse(__firebase_config);
+            } catch (e) {
+                console.error("Firebase config parse error", e);
+            }
+        }
+
+        let registeredCases = [];
+        let myBook = [];
+        let targetDeleteId = null;
+
+        // Initial Seed Samples
+        const sampleCaseStudies = [
+            {
+                salonName: "HAIR SALON LUA 渋谷",
+                area: "東京都渋谷区",
+                gender: ["レディース"],
+                ageGroup: ["25-34歳"],
+                strength: ["顔周りの似合わせカットがウリ"],
+                hasVideo: "あり",
+                title: "小顔に見せるフェイスレイヤー×抜け感スタイリングで新規指名爆増",
+                styleUrl: "https://beauty.hotpepper.jp/slnH000xxxxxx/style/",
+                keyPointPhoto: "【正面・斜め45度・寄りの3構図】前髪から顔周りの毛流れがわかるよう自然光で透明感を強調。背景はシンプルな白壁。",
+                keyPointCaption: "「結んでも可愛いフェイスレイヤー」「小顔カットでお悩み解決」のキーワードを冒頭1行目に配置。"
+            },
+            {
+                salonName: "GARDEN & BEAUTY 新宿",
+                area: "東京都新宿区",
+                gender: ["レディース"],
+                ageGroup: ["25-34歳"],
+                strength: ["再現性・もちが良いカットがウリ"],
+                hasVideo: "なし",
+                title: "乾かすだけで決まるショートボブ！朝の時短を伝えるビフォーアフター訴求",
+                styleUrl: "https://beauty.hotpepper.jp/slnH000xxxxxx/style/",
+                keyPointPhoto: "横顔ラインの美しさを強調したアングル。ハンドブローのみでまとまった艶感をしっかり撮影。",
+                keyPointCaption: "「朝のセットが5分短縮」「アイロン不要でもまとまる崩れないボブ」と、再現性の高さを働く女性に向けて言語化。"
+            },
+            {
+                salonName: "COLOR WORKSHOP 原宿",
+                area: "東京都渋谷区",
+                gender: ["レディース"],
+                ageGroup: ["24歳以下"],
+                strength: ["デザインカラーがウリ"],
+                hasVideo: "あり",
+                title: "Z世代に刺さるインナーカラー・ブリーチONカラーの立体感発信",
+                styleUrl: "https://beauty.hotpepper.jp/slnH000xxxxxx/style/",
+                keyPointPhoto: "風になびかせた瞬間やアレンジ時にチラッと見える色味を連写カットで掲載。",
+                keyPointCaption: "「ブリーチ1回で叶う」「職場でバレにくい隠せるインナーカラー」など実生活に合わせた提案文を記載。"
+            }
+        ];
+
+        window.applyFilters = function() {
+            const genderVal = document.getElementById('filter-gender') ? document.getElementById('filter-gender').value : '';
+            const ageVal = document.getElementById('filter-age') ? document.getElementById('filter-age').value : '';
+            const strengthVal = document.getElementById('filter-strength') ? document.getElementById('filter-strength').value : '';
+            const videoVal = document.getElementById('filter-video') ? document.getElementById('filter-video').value : '';
+
+            const filtered = registeredCases.filter(item => {
+                const itemGenders = Array.isArray(item.gender) ? item.gender : [item.gender];
+                const matchGender = !genderVal || itemGenders.includes(genderVal);
+                
+                const itemAges = Array.isArray(item.ageGroup) ? item.ageGroup : [item.ageGroup];
+                const matchAge = !ageVal || itemAges.includes(ageVal);
+
+                const itemStrengths = Array.isArray(item.strength) ? item.strength : [item.strength];
+                const matchStrength = !strengthVal || itemStrengths.includes(strengthVal);
+
+                const itemHasVideo = (item.hasVideo === 'あり' || item.hasVideo === true) ? 'あり' : 'なし';
+                const matchVideo = !videoVal || itemHasVideo === videoVal;
+
+                return matchGender && matchAge && matchStrength && matchVideo;
+            });
+
+            renderCases(filtered);
+        };
+
+        window.resetFilters = function() {
+            if (document.getElementById('filter-gender')) document.getElementById('filter-gender').value = "";
+            if (document.getElementById('filter-age')) document.getElementById('filter-age').value = "";
+            if (document.getElementById('filter-strength')) document.getElementById('filter-strength').value = "";
+            if (document.getElementById('filter-video')) document.getElementById('filter-video').value = "";
+            window.applyFilters();
+        };
+
+        function updateTotalMetrics() {
+            const totalEl = document.getElementById('total-cases-count');
+            if (totalEl) totalEl.innerText = registeredCases.length;
+            const seedBtn = document.getElementById('seed-btn');
+            if (registeredCases.length === 0) {
+                if(seedBtn) seedBtn.classList.remove('hidden');
+            } else {
+                if(seedBtn) seedBtn.classList.add('hidden');
+            }
+        }
+
+        function renderCases(data) {
+            const container = document.getElementById('cases-grid');
+            const countEl = document.getElementById('result-count');
+            const emptyEl = document.getElementById('empty-state');
+
+            if (!container) return;
+
+            if (countEl) countEl.innerText = data.length;
+            container.innerHTML = "";
+
+            if (data.length === 0) {
+                if (emptyEl) emptyEl.classList.remove('hidden');
+                container.classList.add('hidden');
+                return;
+            } else {
+                if (emptyEl) emptyEl.classList.add('hidden');
+                container.classList.remove('hidden');
+            }
+
+            data.forEach(item => {
+                const isBookmarked = myBook.some(b => b.id === item.id);
+                const card = document.createElement('div');
+                card.className = "bg-white rounded-3xl shadow-sm border border-theme-roseBorder overflow-hidden flex flex-col card-hover relative group";
+
+                // Badges
+                const gendersArr = Array.isArray(item.gender) ? item.gender : [item.gender];
+                const genderBadgesHtml = gendersArr.map(g => `<span class="bg-white/90 backdrop-blur-md text-theme-textDark text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-theme-roseBorder shadow-sm">${g}</span>`).join('');
+
+                const agesArr = Array.isArray(item.ageGroup) ? item.ageGroup : [item.ageGroup];
+                const ageBadgesHtml = agesArr.map(a => `<span class="bg-theme-rose text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow-sm">${a}</span>`).join('');
+
+                const videoBadgeHtml = (item.hasVideo === 'あり' || item.hasVideo === true) 
+                    ? `<span class="bg-white/90 backdrop-blur-md text-theme-rose text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-theme-roseBorder shadow-sm flex items-center gap-1"><i class="fa-solid fa-circle-play text-theme-rose"></i> 動画活用</span>` 
+                    : '';
+
+                const strengthsArr = Array.isArray(item.strength) ? item.strength : [item.strength];
+                const strengthBadgesHtml = strengthsArr.map(s => `<span class="bg-theme-roseBg text-theme-rose font-bold text-[11px] px-2.5 py-0.5 rounded-lg border border-theme-roseBorder">${s}</span>`).join('');
+
+                card.innerHTML = `
+                    <!-- Clean Salon Name Graphic Banner -->
+                    <div class="relative bg-gradient-to-br from-theme-roseBg via-white to-theme-roseLight p-4 border-b border-theme-roseBorder overflow-hidden select-none min-h-[140px] flex flex-col justify-between">
+                        <!-- Top Badges & Delete/Bookmark Buttons -->
+                        <div class="flex items-center justify-between z-10">
+                            <div class="flex flex-wrap gap-1 max-w-[75%]">
+                                ${genderBadgesHtml}
+                                ${ageBadgesHtml}
+                                ${videoBadgeHtml}
+                            </div>
+                            <div class="flex items-center gap-1">
+                                <button onclick="confirmDeleteCase('${item.id}')" title="事例を削除" class="w-7 h-7 rounded-full bg-white/95 backdrop-blur-md flex items-center justify-center text-theme-textMuted hover:text-rose-500 shadow-sm transition border border-theme-roseBorder">
+                                    <i class="fa-solid fa-trash-can text-[10px]"></i>
+                                </button>
+                                <button onclick="toggleBookmark('${item.id}')" title="提案リストに追加" class="w-7 h-7 rounded-full bg-white/95 backdrop-blur-md flex items-center justify-center text-theme-textDark hover:text-theme-rose shadow-sm transition border border-theme-roseBorder">
+                                    <i class="${isBookmarked ? 'fa-solid fa-bookmark text-theme-rose' : 'fa-regular fa-bookmark'} text-xs"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Salon Name Title Display -->
+                        <div class="my-2 z-10">
+                            <div class="inline-flex items-center gap-1.5 text-xs text-theme-rose font-bold mb-0.5">
+                                <i class="fa-solid fa-store"></i> ${item.area || 'エリア未指定'}
+                            </div>
+                            <h2 class="text-lg sm:text-xl font-black text-theme-textDark tracking-tight leading-tight line-clamp-2">
+                                ${item.salonName}
+                            </h2>
+                        </div>
+
+                        <!-- Mock Navigation Tabs -->
+                        <div class="flex items-center gap-2 text-[9px] font-bold text-slate-500 border-t border-theme-roseBorder/60 pt-1.5 z-10 overflow-x-auto no-scrollbar">
+                            <span>サロン情報</span>
+                            <span>クーポン</span>
+                            <span>こだわり</span>
+                            <span>スタイリスト</span>
+                            <span class="text-theme-rose font-bold border-b-2 border-theme-rose pb-0.5">スタイル</span>
+                            <span>ブログ</span>
+                        </div>
+                    </div>
+
+                    <div class="p-5 flex-1 flex flex-col justify-between">
+                        <div>
+                            <div class="flex flex-wrap gap-1.5 mb-2">
+                                ${strengthBadgesHtml}
+                            </div>
+                            <h3 class="font-bold text-theme-textDark text-sm leading-snug mb-2 line-clamp-2">${item.title}</h3>
+                            <p class="text-xs text-theme-textMuted font-medium mb-3"><i class="fa-solid fa-store text-theme-rose/60 mr-1"></i>${item.salonName} （${item.area}）</p>
+
+                            <!-- Key Points Box -->
+                            <div class="bg-theme-roseBg rounded-2xl p-3 border border-theme-roseBorder space-y-2 mb-4">
+                                <div class="text-[11px] text-theme-textDark flex items-start gap-1.5">
+                                    <i class="fa-solid fa-camera text-theme-rose mt-0.5"></i>
+                                    <span class="line-clamp-1"><strong>構図：</strong> ${item.keyPointPhoto}</span>
+                                </div>
+                                <div class="text-[11px] text-theme-textDark flex items-start gap-1.5">
+                                    <i class="fa-solid fa-pen-nib text-theme-rose mt-0.5"></i>
+                                    <span class="line-clamp-1"><strong>文言：</strong> ${item.keyPointCaption}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="pt-3 border-t border-theme-roseBorder">
+                            <button onclick="openDetailModal('${item.id}')" class="w-full bg-theme-rose hover:bg-theme-roseHover text-white text-xs font-bold py-2.5 rounded-2xl shadow-sm transition flex items-center justify-center gap-1.5">
+                                <i class="fa-solid fa-circle-info"></i> 詳細を見る
+                            </button>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        window.openRegisterModal = function() {
+            const form = document.getElementById('register-form');
+            if (form) form.reset();
+            const modal = document.getElementById('register-modal');
+            if (modal) modal.classList.remove('hidden');
+        };
+
+        window.closeRegisterModal = function() {
+            const modal = document.getElementById('register-modal');
+            if (modal) modal.classList.add('hidden');
+        };
+
+        window.handleCaseRegistration = async function(event) {
+            event.preventDefault();
+
+            const selectedGenders = Array.from(document.querySelectorAll('input[name="reg-gender"]:checked')).map(cb => cb.value);
+            if (selectedGenders.length === 0) {
+                alert("ターゲット性別を1つ以上選択してください。");
+                return;
+            }
+
+            const selectedAges = Array.from(document.querySelectorAll('input[name="reg-ageGroup"]:checked')).map(cb => cb.value);
+            if (selectedAges.length === 0) {
+                alert("年齢層を1つ以上選択してください。");
+                return;
+            }
+
+            const selectedStrengths = Array.from(document.querySelectorAll('input[name="reg-strength"]:checked')).map(cb => cb.value);
+            if (selectedStrengths.length === 0) {
+                alert("サロンのウリを1つ以上選択してください。");
+                return;
+            }
+
+            const hasVideoEl = document.getElementById('reg-hasVideo');
+            const hasVideo = (hasVideoEl && hasVideoEl.checked) ? "あり" : "なし";
+
+            const saveBtn = document.getElementById('save-case-btn');
+            if (saveBtn) {
+                saveBtn.disabled = true;
+                saveBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> 保存中...`;
+            }
+
+            const newCaseData = {
+                salonName: document.getElementById('reg-salonName').value,
+                area: document.getElementById('reg-area').value,
+                gender: selectedGenders,
+                ageGroup: selectedAges,
+                strength: selectedStrengths,
+                hasVideo: hasVideo,
+                title: document.getElementById('reg-title').value,
+                styleUrl: document.getElementById('reg-styleUrl').value,
+                keyPointPhoto: document.getElementById('reg-keyPointPhoto').value,
+                keyPointCaption: document.getElementById('reg-keyPointCaption').value,
+                createdAt: new Date().toISOString()
+            };
+
+            if (db) {
+                try {
+                    const casesRef = collection(db, 'artifacts', appId, 'public', 'data', 'cases');
+                    await addDoc(casesRef, newCaseData);
+                } catch (err) {
+                    console.error("Error adding doc to Firestore:", err);
+                }
+            } else {
+                newCaseData.id = "local-" + Date.now();
+                registeredCases.unshift(newCaseData);
+                window.applyFilters();
+                updateTotalMetrics();
+            }
+
+            if (saveBtn) {
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = `<i class="fa-solid fa-check"></i> 事例を登録する`;
+            }
+            window.closeRegisterModal();
+        };
+
+        window.seedInitialData = async function() {
+            if (!db) {
+                registeredCases = [...sampleCaseStudies.map((s, idx) => ({ id: "sample-" + idx, ...s }))];
+                window.applyFilters();
+                updateTotalMetrics();
+                return;
+            }
+
+            const casesRef = collection(db, 'artifacts', appId, 'public', 'data', 'cases');
+            for (const sample of sampleCaseStudies) {
+                await addDoc(casesRef, { ...sample, createdAt: new Date().toISOString() });
+            }
+        };
+
+        window.confirmDeleteCase = function(id) {
+            targetDeleteId = id;
+            const modal = document.getElementById('delete-modal');
+            if (modal) modal.classList.remove('hidden');
+        };
+
+        window.closeDeleteModal = function() {
+            targetDeleteId = null;
+            const modal = document.getElementById('delete-modal');
+            if (modal) modal.classList.add('hidden');
+        };
+
+        window.executeDeleteCase = async function() {
+            if (!targetDeleteId) return;
+
+            if (db) {
+                try {
+                    const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'cases', targetDeleteId);
+                    await deleteDoc(docRef);
+                } catch (err) {
+                    console.error("Error deleting doc:", err);
+                }
+            } else {
+                registeredCases = registeredCases.filter(c => c.id !== targetDeleteId);
+                window.applyFilters();
+                updateTotalMetrics();
+            }
+
+            myBook = myBook.filter(b => b.id !== targetDeleteId);
+            updateMyBookBadge();
+
+            window.closeDeleteModal();
+        };
+
+        window.openDetailModal = function(id) {
+            const item = registeredCases.find(c => c.id === id);
+            if (!item) return;
+
+            const stylePageUrl = item.styleUrl;
+
+            const gendersArr = Array.isArray(item.gender) ? item.gender : [item.gender];
+            const genderBadgesHtml = gendersArr.map(g => `<span class="bg-theme-rose text-white text-xs font-bold px-2.5 py-0.5 rounded-full">${g}</span>`).join('');
+
+            const agesArr = Array.isArray(item.ageGroup) ? item.ageGroup : [item.ageGroup];
+            const ageBadgesHtml = agesArr.map(a => `<span class="bg-theme-roseLight text-theme-rose border border-theme-roseBorder text-xs font-bold px-2.5 py-0.5 rounded-full">${a}</span>`).join('');
+
+            const strengthsArr = Array.isArray(item.strength) ? item.strength : [item.strength];
+            const strengthBadgesHtml = strengthsArr.map(s => `<span class="bg-theme-roseBg text-theme-rose text-xs font-bold px-2.5 py-0.5 rounded-full border border-theme-roseBorder">${s}</span>`).join('');
+
+            const videoBadgeHtml = (item.hasVideo === 'あり' || item.hasVideo === true) 
+                ? `<span class="bg-theme-roseLight text-theme-rose border border-theme-roseBorder text-xs font-bold px-2.5 py-0.5 rounded-full"><i class="fa-solid fa-circle-play"></i> 動画活用あり</span>`
+                : '';
+
+            const modalContent = document.getElementById('modal-content');
+            if (modalContent) {
+                modalContent.innerHTML = `
+                    <div class="flex flex-wrap items-center gap-2 mb-2">
+                        ${genderBadgesHtml}
+                        ${ageBadgesHtml}
+                        ${videoBadgeHtml}
+                        ${strengthBadgesHtml}
+                    </div>
+
+                    <h2 class="text-lg font-bold text-theme-textDark mb-1.5">${item.title}</h2>
+                    <p class="text-xs text-theme-textMuted mb-6 flex items-center gap-2">
+                        <span><i class="fa-solid fa-store text-theme-rose/60"></i> ${item.salonName}</span>
+                        <span>・</span>
+                        <span><i class="fa-solid fa-location-dot text-theme-rose/60"></i> ${item.area}</span>
+                    </p>
+
+                    <div class="space-y-4 mb-6">
+                        <!-- Salon Graphic Header -->
+                        <div class="bg-gradient-to-r from-theme-roseBg via-white to-theme-roseLight p-4 rounded-2xl border border-theme-roseBorder flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div>
+                                <span class="text-[10px] font-bold text-theme-rose bg-white px-2 py-0.5 rounded-full border border-theme-roseBorder">HOT PEPPER BEAUTY</span>
+                                <h3 class="text-lg font-black text-theme-textDark mt-1">${item.salonName}</h3>
+                                <p class="text-xs text-theme-textMuted">${item.area}</p>
+                            </div>
+                            ${stylePageUrl ? `
+                                <a href="${stylePageUrl}" target="_blank" rel="noopener noreferrer" class="bg-white hover:bg-theme-roseLight text-theme-rose text-xs font-bold px-4 py-2 rounded-xl transition flex items-center justify-center gap-1.5 border border-theme-roseBorder shadow-sm">
+                                    <i class="fa-solid fa-arrow-up-right-from-square"></i> スタイルページを見る
+                                </a>
+                            ` : ''}
+                        </div>
+
+                        <div class="bg-theme-roseBg p-4 rounded-2xl border border-theme-roseBorder">
+                            <h4 class="text-xs font-bold text-theme-rose flex items-center gap-1.5 mb-1.5">
+                                <i class="fa-solid fa-camera"></i> 写真撮影のアドバイス（構図・光）
+                            </h4>
+                            <p class="text-xs text-theme-textDark leading-relaxed">${item.keyPointPhoto}</p>
+                        </div>
+
+                        <div class="bg-theme-roseBg p-4 rounded-2xl border border-theme-roseBorder">
+                            <h4 class="text-xs font-bold text-theme-rose flex items-center gap-1.5 mb-1.5">
+                                <i class="fa-solid fa-pen-nib"></i> キャプション・言語化の工夫
+                            </h4>
+                            <p class="text-xs text-theme-textDark leading-relaxed">${item.keyPointCaption}</p>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 flex justify-end gap-3">
+                        <button onclick="toggleBookmark('${item.id}')" class="bg-theme-rose text-white text-xs font-bold px-5 py-2.5 rounded-2xl shadow-sm hover:bg-theme-roseHover transition flex items-center gap-2">
+                            <i class="fa-solid fa-bookmark"></i> 提案リストに保存
+                        </button>
+                        <button onclick="closeDetailModal()" class="bg-slate-100 text-theme-textMuted text-xs font-bold px-4 py-2.5 rounded-2xl hover:bg-slate-200 transition">
+                            閉じる
+                        </button>
+                    </div>
+                `;
+            }
+
+            const modal = document.getElementById('detail-modal');
+            if (modal) modal.classList.remove('hidden');
+        };
+
+        window.closeDetailModal = function() {
+            const modal = document.getElementById('detail-modal');
+            if (modal) modal.classList.add('hidden');
+        };
+
+        window.toggleBookmark = function(id) {
+            const index = myBook.findIndex(b => b.id === id);
+            if (index > -1) {
+                myBook.splice(index, 1);
+            } else {
+                const item = registeredCases.find(c => c.id === id);
+                if (item) myBook.push(item);
+            }
+            updateMyBookBadge();
+            window.applyFilters();
+        };
+
+        function updateMyBookBadge() {
+            const badge = document.getElementById('mybook-badge');
+            if (badge) badge.innerText = myBook.length;
+        }
+
+        window.openMyBookModal = function() {
+            const container = document.getElementById('mybook-items-container');
+            if (!container) return;
+            container.innerHTML = "";
+
+            if (myBook.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-12">
+                        <i class="fa-regular fa-folder-open text-4xl text-theme-rose/30 mb-3"></i>
+                        <p class="text-xs font-bold text-theme-textDark">提案リストに保存された事例がありません</p>
+                        <p class="text-xs text-theme-textMuted mt-1">気になる事例の「提案リストに保存」ボタンを押してください。</p>
+                    </div>
+                `;
+            } else {
+                myBook.forEach((item, idx) => {
+                    const gendersStr = Array.isArray(item.gender) ? item.gender.join(' / ') : item.gender;
+                    const agesStr = Array.isArray(item.ageGroup) ? item.ageGroup.join(' / ') : item.ageGroup;
+                    const strengthsStr = Array.isArray(item.strength) ? item.strength.join(' / ') : item.strength;
+                    const displayUrl = item.styleUrl || "https://beauty.hotpepper.jp/style/";
+
+                    const div = document.createElement('div');
+                    div.className = "proposal-page bg-white p-5 rounded-3xl border border-theme-roseBorder space-y-4 relative shadow-sm my-4";
+                    div.style.pageBreakAfter = "always";
+                    div.style.breakAfter = "page";
+
+                    div.innerHTML = `
+                        <button onclick="toggleBookmark('${item.id}'); openMyBookModal();" class="no-print absolute top-4 right-4 text-theme-textMuted hover:text-rose-500 text-xs font-bold flex items-center gap-1 z-10">
+                            <i class="fa-solid fa-trash-can"></i> 削除
+                        </button>
+
+                        <div class="flex items-center justify-between border-b border-theme-roseBorder pb-3">
+                            <div class="flex items-center gap-2">
+                                <span class="bg-theme-rose text-white text-xs font-bold px-3 py-1 rounded-full">事例 ${idx + 1} / ${myBook.length}</span>
+                                <h3 class="font-bold text-base text-theme-textDark">${item.title}</h3>
+                            </div>
+                            <span class="text-xs font-bold text-theme-rose tracking-wide">HOT PEPPER BEAUTY スタイル活用提案書</span>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-12 gap-5 items-start">
+                            <!-- Left: Salon Graphic Display -->
+                            <div class="md:col-span-5 bg-gradient-to-br from-theme-roseBg to-theme-roseLight border border-theme-roseBorder rounded-2xl p-4 flex flex-col justify-between space-y-3">
+                                <div>
+                                    <span class="text-[10px] font-bold text-theme-rose bg-white px-2 py-0.5 rounded-full border border-theme-roseBorder">HOT PEPPER BEAUTY</span>
+                                    <h4 class="text-lg font-black text-theme-textDark mt-2">${item.salonName}</h4>
+                                    <p class="text-xs text-theme-textMuted"><i class="fa-solid fa-location-dot mr-1"></i>${item.area}</p>
+                                </div>
+                                <div class="text-[10px] text-theme-textMuted border-t border-theme-roseBorder pt-2 truncate">
+                                    <i class="fa-solid fa-link mr-1"></i>${displayUrl}
+                                </div>
+                            </div>
+
+                            <!-- Right: Advice Details -->
+                            <div class="md:col-span-7 space-y-3">
+                                <div class="bg-theme-roseBg p-3 rounded-2xl border border-theme-roseBorder space-y-1">
+                                    <div class="text-xs text-theme-textDark">
+                                        <strong class="text-theme-rose">■ ターゲット：</strong> ${gendersStr} / ${agesStr}
+                                    </div>
+                                    <div class="text-xs text-theme-textDark">
+                                        <strong class="text-theme-rose">■ サロンのウリ：</strong> ${strengthsStr}
+                                    </div>
+                                </div>
+
+                                <div class="bg-white p-3.5 rounded-2xl border border-theme-roseBorder space-y-1">
+                                    <h4 class="text-xs font-bold text-theme-rose flex items-center gap-1.5">
+                                        <i class="fa-solid fa-camera"></i> 写真撮影のアドバイス（構図・光）
+                                    </h4>
+                                    <p class="text-xs text-theme-textDark leading-relaxed">${item.keyPointPhoto}</p>
+                                </div>
+
+                                <div class="bg-white p-3.5 rounded-2xl border border-theme-roseBorder space-y-1">
+                                    <h4 class="text-xs font-bold text-theme-rose flex items-center gap-1.5">
+                                        <i class="fa-solid fa-pen-nib"></i> キャプション・言語化の工夫
+                                    </h4>
+                                    <p class="text-xs text-theme-textDark leading-relaxed">${item.keyPointCaption}</p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    container.appendChild(div);
+                });
+            }
+
+            const modal = document.getElementById('mybook-modal');
+            if (modal) modal.classList.remove('hidden');
+        };
+
+        window.closeMyBookModal = function() {
+            const modal = document.getElementById('mybook-modal');
+            if (modal) modal.classList.add('hidden');
+        };
+
+        window.downloadProposalPDF = function() {
+            if (myBook.length === 0) {
+                alert("提案リストに事例が追加されていません。事例を追加してから出力してください。");
+                return;
+            }
+
+            const element = document.getElementById('printable-area');
+            const opt = {
+                margin:       [8, 8, 8, 8],
+                filename:     `ホットペッパービューティー_スタイル活用提案書_${new Date().toISOString().slice(0,10)}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true, logging: false },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' },
+                pagebreak:    { mode: ['css', 'legacy'] }
+            };
+
+            html2pdf().set(opt).from(element).save();
+        };
+
+        window.openShareEmailModal = function() {
+            if (myBook.length === 0) {
+                alert("提案リストに事例が追加されていません。");
+                return;
+            }
+
+            let text = "いつも大変お世話になっております。ホットペッパービューティー担当です。\n\n";
+            text += "貴サロンの集客効果最大化に向け、スタイルページの打ち出し参考となる活用事例をピックアップいたしました。\n";
+            text += "ぜひ今後のスタイル撮影・キャプション設定の参考にご活用ください。\n\n";
+            text += "──────────────────────────\n";
+
+            myBook.forEach((item, idx) => {
+                const gendersStr = Array.isArray(item.gender) ? item.gender.join(' / ') : item.gender;
+                const agesStr = Array.isArray(item.ageGroup) ? item.ageGroup.join(' / ') : item.ageGroup;
+                const strengthsStr = Array.isArray(item.strength) ? item.strength.join(' / ') : item.strength;
+
+                text += `【事例 ${idx + 1}】${item.title}\n`;
+                text += `■ 対象ターゲット: ${gendersStr} / ${agesStr}\n`;
+                text += `■ サロンのウリ: ${strengthsStr}\n`;
+                text += `■ 撮影構図のアドバイス:\n  ${item.keyPointPhoto}\n`;
+                text += `■ キャプション文言の工夫:\n  ${item.keyPointCaption}\n`;
+                if (item.styleUrl) {
+                    text += `■ スタイルページURL:\n  ${item.styleUrl}\n`;
+                }
+                text += "──────────────────────────\n";
+            });
+
+            text += "\nご不明点やご相談がございましたら、いつでもお気軽にご連絡ください。\n引き続きよろしくお願いいたします。";
+
+            const textarea = document.getElementById('share-email-textarea');
+            if (textarea) textarea.value = text;
+            const modal = document.getElementById('share-email-modal');
+            if (modal) modal.classList.remove('hidden');
+        };
+
+        window.closeShareEmailModal = function() {
+            const modal = document.getElementById('share-email-modal');
+            if (modal) modal.classList.add('hidden');
+        };
+
+        window.copyShareEmailText = function() {
+            const textarea = document.getElementById('share-email-textarea');
+            if (textarea) {
+                textarea.select();
+                document.execCommand('copy');
+                alert("送付用文面をクリップボードにコピーしました！");
+            }
+            window.closeShareEmailModal();
+        };
+
+        // Initialize Firestore listener on load
+        window.addEventListener('DOMContentLoaded', async () => {
+            if (firebaseConfig) {
+                try {
+                    const app = initializeApp(firebaseConfig);
+                    auth = getAuth(app);
+                    db = getFirestore(app);
+
+                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                    } else {
+                        await signInAnonymously(auth);
+                    }
+
+                    const casesRef = collection(db, 'artifacts', appId, 'public', 'data', 'cases');
+                    onSnapshot(casesRef, (snapshot) => {
+                        registeredCases = [];
+                        snapshot.forEach((docSnap) => {
+                            registeredCases.push({ id: docSnap.id, ...docSnap.data() });
+                        });
+                        window.applyFilters();
+                        updateTotalMetrics();
+                    }, (error) => {
+                        console.error("Firestore onSnapshot error:", error);
+                        window.applyFilters();
+                        updateTotalMetrics();
+                    });
+                } catch (err) {
+                    console.error("Firebase Auth/Firestore Init Error:", err);
+                    window.applyFilters();
+                    updateTotalMetrics();
+                }
+            } else {

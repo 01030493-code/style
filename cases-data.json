@@ -1,0 +1,14 @@
+[
+  {
+    "id": "sample-1",
+    "salonName": "HAIR SALON LUA 渋谷",
+    "area": "東京都渋谷区",
+    "gender": ["レディース"],
+    "ageGroup": ["25-34歳"],
+    "strength": ["顔周りの似合わせカットがウリ"],
+    "useVideo": "動画活用あり",
+    "title": "小顔に見せるフェイスレイヤー×抜け感スタイリング",
+    "keyPointPhoto": "前髪から顔周りの毛流れがわかるよう自然光で透明感を強調。",
+    "keyPointCaption": "「結んでも可愛いフェイスレイヤー」のキーワードを冒頭に配置。"
+  }
+]
